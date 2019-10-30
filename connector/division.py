@@ -1,3 +1,5 @@
+#分队算法
+
 from copy import *
 import numpy
 import time
@@ -5,7 +7,7 @@ from itertools import combinations
 from quanzhong import sda
 
 def operation(list):#判别牌型，返回牌型对应数字与此牌型中关键牌值
-    sum=0;
+    sum=[0,0,0];
     a=[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
     for list1 in list:
         for count in range(5):
@@ -33,10 +35,10 @@ def operation(list):#判别牌型，返回牌型对应数字与此牌型中关�
                         sum= [8,jojo[0]]#葫芦
                         return sum
                     elif list[0][1]==list[1][1]==list[2][1]==list[3][1]==list[4][1]:
-                        sum=[7,list[4][0]]#同花
+                        sum=[7,list[4][0],list[3][0]]#同花
                         return sum
                     elif (list[0][0] + 4 == list[1][0] + 3 == list[2][0] + 2 == list[3][0] + 1 == list[4][0]):
-                        sum=[6,list[4][0]]#顺子
+                        sum=[6,list[4][0],list[3][0]]#顺子
                         return sum
                     else :
                         sum=[5,jojo[0]]#三条
@@ -46,7 +48,7 @@ def operation(list):#判别牌型，返回牌型对应数字与此牌型中关�
                     sum= [8,a[1][0]]#葫芦
                     return sum
                 elif list[0][1] == list[1][1] == list[2][1] == list[3][1] == list[4][1]:
-                    sum =[7, list[4][0]] # 同花
+                    sum =[7, list[4][0],list[3][0]] # 同花
                     return sum
                 elif (list[0][0] + 4 == list[1][0] + 3 == list[2][0] + 2 == list[3][0] + 1 == list[4][0]):
                     sum = [6,list[4][0]]  # 顺子
@@ -65,7 +67,7 @@ def operation(list):#判别牌型，返回牌型对应数字与此牌型中关�
                     sum=[2,jojo[0]] #对子
                     return sum
         if list[0][1] == list[1][1] == list[2][1] == list[3][1] == list[4][1]:
-            sum =[7 ,list[4][0] ]# 同花
+            sum =[7 ,list[4][0] ,list[3][0]]# 同花
             return sum
         elif (list[0][0] + 4 == list[1][0] + 3 == list[2][0] + 2 == list[3][0] + 1 == list[4][0]):
             sum =  [6 ,list[4][0]] # 顺子
@@ -118,10 +120,10 @@ def ope(list3):#求前墩的牌型，返回值与operation（）相同
         sum=[5,list3[2][0]]
         return sum
     elif list3[0][0]==list3[1][0]:
-        sum=[2,list3[2][0]]
+        sum=[2,list3[1][0]]
         return sum
     elif list3[2][0]==list3[1][0]:
-        sum=[2,list3[2][0]]
+        sum=[2,list3[1][0]]
         return sum
     else:
         sum=[1,list3[2][0]]
@@ -145,8 +147,10 @@ def get_type(value):#将对应数据转化为牌型名
         return "两对"
     elif value==2:
         return "对子"
-    else:
+    elif value==1:
         return  "散牌"
+    else :
+        return "出错!!!"
 def do(lll):#算法主函数，执行分墩步骤
     card=lll
     card_type=["","",""]
@@ -203,22 +207,23 @@ def do(lll):#算法主函数，执行分墩步骤
             list1=list(operation(test))
             list2=list(operation(test1))
             list3=list(ope(test2))
-            value1=sda[list1[0]-1][2][list1[1]-1]
-            value2=sda[list2[0]-1][1][list2[1]-1]
-            value3=sda[list3[0]-1][0][list3[1]-1]
+            if list1[0] < list2[0] or list2[0] < list3[0] or list1[0] == list2[0] and list1[1] < list2[1] or list3[0] ==list2[0] and list2[1] < list3[1]or (list1[0]==list2[0]==7and list1[2]<list2[2]):
+                continue
+            else:
+                value1 = sda[list1[0] - 1][2][list1[1] - 1]
+                value2 = sda[list2[0] - 1][1][list2[1] - 1]
+                value3 = sda[list3[0] - 1][0][list3[1] - 1]
 
-            if value1>value2>value3:
-                sum=value1+value2+value3
-                if sum>max:
-                    dun=[test2,test1,test]
-                    max=sum
+                sum = value1 + value2 + value3
+                if sum > max:
+                    dun = [test2, test1, test]
+                    max = sum
                     card_type[2] = get_type(list1[0])
                     card_type[1] = get_type(list2[0])
                     card_type[0] = get_type(list3[0])
-                    max1=value1
-                    max2=value2
-                    max3=value3
-
+                    max1 = value1
+                    max2 = value2
+                    max3 = value3
     s = jiema(dun)
     #print(max1)#103991
    # print(max2)
@@ -229,7 +234,7 @@ def do(lll):#算法主函数，执行分墩步骤
     print(s)
     return s
 
-#lll="*6 #6 &A #2 $3 *5 *Q #Q $7 #8 *10 #10 &10"
-#do(lll)
+lll="&10 &5 #9 &9 $A *Q &8 $4 #4 #Q *9 $J $5"
+do(lll)
 #l=[[10, 4], [10, 1], [5, 2], [13, 4], [13, 2]]
 #print(operation(l))
