@@ -13,14 +13,18 @@ from connector.asd import start             #导入开始游戏接口
 from connector.lishizhanji import paihang   #导入排行榜接口
 from connector.lishizhanji import see       #导入历史列表接口
 from connector.lishizhanji import zhanju    #导入战局详情接口
+from connector.Logout import chupai         #导入出牌接口
+from connector.division import do           #导入出牌函数
 
 from PyQt5.Qt import *
 
+
 if __name__ == '__main__':
     import sys
-
     app = QApplication(sys.argv)
     token = "a_random_string"
+    game_id = 0
+    card = "*1 *2 *3 *4 *5 *6 7 *8 *9 *J *Q *K"
 
     window_login = LoginRegisterPlatform()              #创建登入界面
     window_login.setObjectName("Login")
@@ -60,6 +64,7 @@ if __name__ == '__main__':
 
 
     def show_user_platform(login_text,register_text):           #由登入界面跳转到用户界面的函数
+        global token
         account = {"username": login_text, "password": register_text}
         r = entry(account)
         flag = r["status"]
@@ -74,10 +79,10 @@ if __name__ == '__main__':
         else:
             QMessageBox.about(window_login, "登入结果", "登入失败,账号或密码错误")
 
-    #def show_login_platform_f_r():
-        #print("回到登入界面")
-        #window_login.show()
-        #window_register.hide()
+    def show_login_platform_f_r():
+        print("回到登入界面")
+        window_login.show()
+        window_register.hide()
 
     def show_register_platform():
         print("展示注册界面")
@@ -90,19 +95,8 @@ if __name__ == '__main__':
         window_user.hide()
 
     def show_game_platform():  #由用户界面跳转到游戏界面的函数
-        global token
-        #print(token)
-        r = start(token)
-        flag = r["status"]
-        data = r["data"]
-        id = str(data["id"])
-        #print(flag,data,id)
-        if (flag == 0):
-            window_user.hide()
-            window_game.show()
-            window_game.game_id.setText(id)
-        else:
-            QMessageBox.about(window_user, "开始游戏结果", "开始游戏失败，错误状态码："+flag)
+        window_user.hide()
+        window_game.show()
 
     def show_record_platform():           #由用户界面跳转到排行榜界面的函数
         print("展示排行榜平台")
@@ -175,7 +169,6 @@ if __name__ == '__main__':
         global token
         print(player_id)
         response = see(token,player_id)
-
         data = response["data"]
         lenth = len(data)
         window_list.history_game_list.setRowCount(lenth)
@@ -212,9 +205,138 @@ if __name__ == '__main__':
             score_Item = QTableWidgetItem(str(now_detail["score"]))
             window_detail.history_game_detail.setItem(i, 4, score_Item)
 
+    def start_game():           #开始游戏但是还没出牌
+        print("已经点击开始游戏按钮")
+        QMessageBox.about(window_game, "提示", "点击出牌后可再次点击开始游戏，重复点击开始游戏将导致进入多个战局而无法出牌")
+        global token,game_id,card
+        # print(token)
+        r = start(token)
+        flag = r["status"]
+        data = r["data"]
+        id = str(data["id"])
+        game_id = data["id"]
+        card = data["card"]
+        print(card)
+        if (flag == 0):
+            window_game.game_id.setText(id)
+            QMessageBox.about(window_game,"提示","成功进入战局")
+        else:
+            QMessageBox.about(window_game, "开始游戏结果", "开始游戏失败，错误状态码：" + str(flag))
+
+    def show_poker():
+        print("已经点击出牌按钮")
+        global token,game_id,card
+        s = do(card)
+        response = chupai(token,game_id,s)
+
+        c = s[0]
+        d = ''
+        type_1 = list()
+        for i in c:
+            if i == ' ':
+                if d[0] == '#':
+                    d = '方块' + d
+                elif d[0] == '$':
+                    d = '黑桃' + d
+                elif d[0] == '&':
+                    d = '红桃' + d
+                elif d[0] == '*':
+                    d = '梅花' + d
+
+                type_1.append(d)
+                d = ''
+                continue
+            d += i
+        if d[0] == '#':
+            d = '方块' + d
+        elif d[0] == '$':
+            d = '黑桃' + d
+        elif d[0] == '&':
+            d = '红桃' + d
+        elif d[0] == '*':
+            d = '梅花' + d
+        type_1.append(d)
+        window_game.one_poker_1.setText(type_1[0])
+        window_game.one_poker_2.setText(type_1[1])
+        window_game.one_poker_3.setText(type_1[2])
+
+        type_2 = list()
+        c = s[1]
+        d = ''
+        for i in c:
+            if i == ' ':
+                if d[0] == '#':
+                    d = '方块' + d
+                elif d[0] == '$':
+                    d = '黑桃' + d
+                elif d[0] == '&':
+                    d = '红桃' + d
+                elif d[0] == '*':
+                    d = '梅花' + d
+                type_2.append(d)
+                d = ''
+                continue
+            d += i
+        if d[0] == '#':
+            d = '方块' + d
+        elif d[0] == '$':
+            d = '黑桃' + d
+        elif d[0] == '&':
+            d = '红桃' + d
+        elif d[0] == '*':
+            d = '梅花' + d
+        type_2.append(d)
+        window_game.tow_poker_1.setText(type_2[0])
+        window_game.tow_poker_2.setText(type_2[1])
+        window_game.tow_poker_3.setText(type_2[2])
+        window_game.tow_poker_4.setText(type_2[3])
+        window_game.tow_poker_5.setText(type_2[4])
+
+        type_3 = list()
+        c = s[2]
+        d = ''
+        for i in c:
+            if i == ' ':
+                if d[0] == '#':
+                    d = '方块' + d
+                elif d[0] == '$':
+                    d = '黑桃' + d
+                elif d[0] == '&':
+                    d = '红桃' + d
+                elif d[0] == '*':
+                    d = '梅花' + d
+                type_3.append(d)
+                d = ''
+                continue
+            d += i
+        if d[0] == '#':
+            d = '方块' + d
+        elif d[0] == '$':
+            d = '黑桃' + d
+        elif d[0] == '&':
+            d = '红桃' + d
+        elif d[0] == '*':
+            d = '梅花' + d
+        type_3.append(d)
+        window_game.three_poker_1.setText(type_3[0])
+        window_game.three_poker_2.setText(type_3[1])
+        window_game.three_poker_3.setText(type_3[2])
+        window_game.three_poker_4.setText(type_3[3])
+        window_game.three_poker_5.setText(type_3[4])
+
+        flag = response["status"]
+        if (flag == 0):
+            QMessageBox.about(window_game,"提示","出牌成功可以再次开始游戏")
+        else:
+            QMessageBox.about(window_game,"提示","出牌失败")
+
+
+
+
+
     window_login.account_password_signal.connect(show_user_platform)                           #登入界面中连接跳转到用户界面的函数
     window_login.register_signal.connect(show_register_platform)                    #登入界面到注册界面的连接
-    #window_register.return_to_login_signal.connect(show_login_platform_f_r)        #注册界面回到登入界面
+    window_register.return_to_login_signal.connect(show_login_platform_f_r)        #注册界面回到登入界面
     window_user.return_to_login_platform_signal.connect(show_login_platform_f_u)     #自己看函数名
     window_user.start_game_signal.connect(show_game_platform)                       #用户界面中连接跳转到游戏界面的函数
     window_user.go_to_rank_signal.connect(show_record_platform)                     #用户界面中连接跳转到排行榜界面的函数
@@ -228,7 +350,8 @@ if __name__ == '__main__':
     window_record.get_data_signal.connect(record_get_data)             #更新排行榜数据
     window_list.get_data_signal.connect(list_get_data)                 #更新历史列表数据
     window_detail.get_data_signal.connect(detail_get_data)             #更新战局详情列表
-
+    window_game.start_game_signal.connect(start_game)                  #开始游戏请求
+    window_game.show_poker_signal.connect(show_poker)                  #出牌
 
     window_login.show()
 
